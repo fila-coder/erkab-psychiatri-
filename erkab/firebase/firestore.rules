@@ -1,0 +1,179 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(uid())).data;
+    }
+    function isAdmin() {
+      return signedIn() && userDoc().role == 'ADMIN';
+    }
+    function isActiveProvider(providerId) {
+      return exists(/databases/$(database)/documents/psychiatristPublic/$(providerId))
+        && get(/databases/$(database)/documents/psychiatristPublic/$(providerId)).data.status == 'ACTIVE';
+    }
+    function openSlotMatches(slotId, providerId, startAt, endAt) {
+      let s = get(/databases/$(database)/documents/availability/$(slotId)).data;
+      return s.status == 'open'
+        && s.providerId == providerId
+        && s.startAt == startAt
+        && s.endAt == endAt;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create: if signedIn() && uid() == userId
+        && request.resource.data.role in ['PATIENT', 'PSYCHIATRIST']
+        && request.resource.data.status == 'active';
+      allow update: if signedIn() && uid() == userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'status']);
+      allow delete: if false;
+    }
+
+    match /patients/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create, update: if signedIn() && uid() == userId;
+      allow delete: if false;
+    }
+
+    match /psychiatristPublic/{userId} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.status == 'ACTIVE'
+        && !('driveEvidenceUrl' in request.resource.data)
+        && !('applicationNotes' in request.resource.data)
+        && !('review' in request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /psychiatristApplications/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create: if signedIn() && uid() == userId
+        && request.resource.data.status == 'DRAFT'
+        && request.resource.data.trustPassport.overall == 'unverified';
+      // Applicant updates: cannot touch review or set verified/ACTIVE
+      allow update: if signedIn() && (
+        (
+          uid() == userId
+          && resource.data.status in ['DRAFT', 'MORE_INFORMATION_REQUIRED', 'ACTIVE', 'UNDER_REVIEW']
+          && request.resource.data.status in ['DRAFT', 'UNDER_REVIEW']
+          && request.resource.data.trustPassport.overall != 'verified'
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['review'])
+        )
+        || isAdmin()
+      );
+      allow delete: if false;
+    }
+
+    match /availability/{slotId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && (request.resource.data.providerId == uid() || isAdmin())
+        && request.resource.data.status == 'open'
+        && isActiveProvider(request.resource.data.providerId)
+        && request.resource.data.endAt > request.resource.data.startAt;
+      allow update: if signedIn() && (
+        // Patient claim: open → booked
+        (
+          resource.data.status == 'open'
+          && request.resource.data.status == 'booked'
+          && request.resource.data.providerId == resource.data.providerId
+          && request.resource.data.startAt == resource.data.startAt
+          && request.resource.data.endAt == resource.data.endAt
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['status', 'appointmentId', 'updatedAt'])
+        )
+        // Release on cancel: booked → open only if appointmentId matches outgoing
+        || (
+          resource.data.status == 'booked'
+          && request.resource.data.status == 'open'
+          && request.resource.data.providerId == resource.data.providerId
+          && request.resource.data.startAt == resource.data.startAt
+          && request.resource.data.endAt == resource.data.endAt
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['status', 'appointmentId', 'updatedAt'])
+        )
+        // Provider edits own open slots only
+        || (
+          resource.data.providerId == uid()
+          && resource.data.status == 'open'
+          && request.resource.data.status == 'open'
+          && request.resource.data.providerId == resource.data.providerId
+        )
+        || (
+          isAdmin()
+          && request.resource.data.providerId == resource.data.providerId
+        )
+      );
+      allow delete: if signedIn() && (resource.data.providerId == uid() || isAdmin());
+    }
+
+    match /appointments/{id} {
+      allow read: if signedIn() && (
+        resource.data.patientId == uid()
+        || resource.data.providerId == uid()
+        || isAdmin()
+      );
+      // Patient creates REQUESTED only; must include availabilitySlotId matching open slot
+      allow create: if signedIn()
+        && request.resource.data.patientId == uid()
+        && request.resource.data.status == 'REQUESTED'
+        && request.resource.data.endAt > request.resource.data.startAt
+        && request.resource.data.availabilitySlotId is string
+        && openSlotMatches(
+             request.resource.data.availabilitySlotId,
+             request.resource.data.providerId,
+             request.resource.data.startAt,
+             request.resource.data.endAt
+           );
+      allow update: if signedIn() && (
+        (
+          resource.data.patientId == uid()
+          && resource.data.status == 'REQUESTED'
+          && request.resource.data.status == 'CANCELLED'
+          && request.resource.data.patientId == resource.data.patientId
+          && request.resource.data.providerId == resource.data.providerId
+          && request.resource.data.startAt == resource.data.startAt
+          && request.resource.data.endAt == resource.data.endAt
+        )
+        || (
+          (resource.data.providerId == uid() || isAdmin())
+          && resource.data.status == 'REQUESTED'
+          && request.resource.data.status in ['CONFIRMED', 'CANCELLED']
+          && request.resource.data.patientId == resource.data.patientId
+          && request.resource.data.providerId == resource.data.providerId
+          && request.resource.data.startAt == resource.data.startAt
+          && request.resource.data.endAt == resource.data.endAt
+        )
+      );
+      allow delete: if false;
+    }
+
+    match /payments/{id} {
+      allow read: if signedIn() && (resource.data.patientId == uid() || isAdmin());
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /supportTickets/{id} {
+      allow read: if signedIn() && (resource.data.userId == uid() || isAdmin());
+      allow create: if signedIn() && request.resource.data.userId == uid();
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /auditLogs/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}
