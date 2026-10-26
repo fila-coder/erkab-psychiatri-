@@ -7,8 +7,8 @@ import type {
   MeetingRecord,
   SupportTicket,
   AuditEvent,
-  UserRole,
   ProviderStatus,
+  ProviderAvailabilitySlot,
 } from '../types';
 
 export interface AuthCredentials {
@@ -59,14 +59,14 @@ export interface AppointmentRepository {
   listByPatient(patientId: string): Promise<Appointment[]>;
   listByProvider(providerId: string): Promise<Appointment[]>;
   listAll(): Promise<Appointment[]>;
-  create(appt: Appointment): Promise<void>;
+  create(appt: Appointment): Promise<Appointment>;
   update(id: string, patch: Partial<Appointment>): Promise<void>;
 }
 
 export interface PaymentRepository {
   get(id: string): Promise<PaymentRecord | null>;
   listByPatient(patientId: string): Promise<PaymentRecord[]>;
-  create(payment: PaymentRecord): Promise<void>;
+  create(payment: PaymentRecord): Promise<PaymentRecord>;
   update(id: string, patch: Partial<PaymentRecord>): Promise<void>;
 }
 
@@ -88,9 +88,9 @@ export interface SupportRepository {
 }
 
 export interface AvailabilityRepo {
-  listOpenByProvider(providerId: string): Promise<import('../types').ProviderAvailabilitySlot[]>;
-  listByProvider(providerId: string): Promise<import('../types').ProviderAvailabilitySlot[]>;
-  publish(slot: import('../types').ProviderAvailabilitySlot): Promise<void>;
+  listOpenByProvider(providerId: string): Promise<ProviderAvailabilitySlot[]>;
+  listByProvider(providerId: string): Promise<ProviderAvailabilitySlot[]>;
+  publish(slot: ProviderAvailabilitySlot): Promise<void>;
   claim(slotId: string, appointmentId: string, patientId: string): Promise<void>;
   releaseSlot?(slotId: string, appointmentId: string): Promise<void>;
 }

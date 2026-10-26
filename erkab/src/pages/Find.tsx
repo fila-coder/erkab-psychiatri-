@@ -5,6 +5,7 @@ import { getRepositories } from '../repositories';
 import { useAuth } from '../context/AuthContext';
 import styles from './Find.module.css';
 import type { PsychiatristProfile } from '../types';
+import { getPlatformPackage } from '../services/pricing';
 
 const COUNTRY_TO_CODE: Record<string, string> = {
   Ethiopia: 'ET',
@@ -138,7 +139,7 @@ export function Find() {
                 </ul>
                 <div className={styles.cardActions}>
                   <span className={styles.price}>
-                    {p.price.currency} {p.price.amount} · {p.sessionDurationMin} min ·{' '}
+                    {getPlatformPackage().label} · {p.sessionDurationMin} min ·{' '}
                     {p.jurisdictions.join(', ')}
                   </span>
                   {user?.role === 'PATIENT' ? (

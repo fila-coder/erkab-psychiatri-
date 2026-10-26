@@ -136,8 +136,9 @@ export interface MeetingRecord {
   id: string;
   appointmentId: string;
   status: MeetingStatus;
-  provider: 'local' | 'zoom' | 'meet' | 'none';
+  provider: 'local' | 'zoom' | 'meet' | 'jitsi' | 'none';
   joinHint?: string;
+  joinUrl?: string;
   isTestMeeting: boolean;
   createdAt: string;
 }

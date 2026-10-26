@@ -7,6 +7,7 @@ import { startPayment } from '../../services/payment';
 import { Button } from '../../components/Button';
 import type { ProviderAvailabilitySlot, PsychiatristProfile } from '../../types';
 import styles from '../Dashboard.module.css';
+import { getPlatformPackage } from '../../services/pricing';
 
 export function Book() {
   const { providerId } = useParams<{ providerId: string }>();
@@ -104,8 +105,9 @@ export function Book() {
         </div>
       </header>
       <p className={styles.lead}>
-        Choose a time published by this psychiatrist. Requests stay pending until
-        confirmed. Payment collection is not configured in this release.
+        Choose a time published by this psychiatrist. Package:{' '}
+        <strong>{getPlatformPackage().label}</strong>. Requests stay pending until
+        confirmed. Payment is manual until a gateway is connected.
       </p>
       {loadingSlots && <p>Loading availability…</p>}
       {!loadingSlots && slots.length === 0 && (

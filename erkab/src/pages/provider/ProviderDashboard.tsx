@@ -24,8 +24,11 @@ export function ProviderDashboard() {
     <div>
       <header className={styles.pageHead}>
         <div>
-          <p className="eyebrow">Psychiatrist</p>
+          <p className="eyebrow">Psychiatrist portal</p>
           <h1>Practice home</h1>
+          <p className={styles.lead} style={{ marginTop: 4 }}>
+            Credentials, application status, and your session schedule.
+          </p>
         </div>
         <Link to="/provider/application">
           <Button variant="soft" size="sm">
@@ -76,7 +79,14 @@ export function ProviderDashboard() {
                     })}
                   </p>
                 </div>
-                <span className={styles.pill}>{a.status}</span>
+                <div className={styles.cardRight}>
+                  <span className={styles.pill}>{a.status}</span>
+                  <Link to={`/session/${a.id}`}>
+                    <Button variant="soft" size="sm">
+                      Join session
+                    </Button>
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>
@@ -86,8 +96,9 @@ export function ProviderDashboard() {
         <h2>Earnings</h2>
         <div className={styles.card}>
           <p className={styles.meta}>
-            Payout integration is not configured. Connect a payment provider and
-            backend payout workflow before real transfers.
+            Package price is set by Erkab admin. Your payout is package amount minus
+            platform commission. Bank payout is not automated yet — record accounts
+            offline until payout integration is added.
           </p>
         </div>
       </section>

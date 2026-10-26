@@ -5,7 +5,8 @@
  */
 
 import { getRepositories } from '../repositories';
-import type { Appointment, AppointmentStatus, PsychiatristProfile } from '../types';
+import { getPlatformPackage, platformFeeAmount } from './pricing';
+import type { Appointment, PsychiatristProfile } from '../types';
 
 export interface BookSlotInput {
   patientId: string;
@@ -119,11 +120,14 @@ export async function bookAppointment(input: BookSlotInput): Promise<BookResult>
     endAt: input.endAt,
     timezone: input.timezone,
     status: 'REQUESTED',
-    priceSnapshot: {
-      amount: provider.price.amount,
-      currency: provider.price.currency,
-      platformFee: Math.round(provider.price.amount * 0.1 * 100) / 100,
-    },
+    priceSnapshot: (() => {
+      const pkg = getPlatformPackage();
+      return {
+        amount: pkg.amount,
+        currency: pkg.currency,
+        platformFee: platformFeeAmount(pkg),
+      };
+    })(),
     createdAt: t,
     updatedAt: t,
   };

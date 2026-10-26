@@ -45,8 +45,11 @@ export function PatientDashboard() {
     <div>
       <header className={styles.pageHead}>
         <div>
-          <p className="eyebrow">Patient</p>
+          <p className="eyebrow">Patient portal</p>
           <h1>Your care</h1>
+          <p className={styles.lead} style={{ marginTop: 4 }}>
+            Book sessions, manage intake, and track appointments.
+          </p>
         </div>
         <Link to="/find">
           <Button>Find a psychiatrist</Button>
@@ -116,7 +119,14 @@ export function PatientDashboard() {
                       Awaiting payment confirmation (provider not configured).
                     </span>
                   )}
-                  {(a.status === 'PENDING_PAYMENT' || a.status === 'CONFIRMED') && (
+                  {(a.status === 'CONFIRMED' || a.status === 'REQUESTED') && (
+                    <Link to={`/session/${a.id}`}>
+                      <Button variant="soft" size="sm">
+                        Join session
+                      </Button>
+                    </Link>
+                  )}
+                  {(a.status === 'PENDING_PAYMENT' || a.status === 'CONFIRMED' || a.status === 'REQUESTED') && (
                     <Button variant="ghost" size="sm" onClick={() => handleCancel(a.id)}>
                       Cancel
                     </Button>

@@ -22,6 +22,8 @@ import { ProviderDashboard } from './pages/provider/ProviderDashboard';
 import { Application } from './pages/provider/Application';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { Applications } from './pages/admin/Applications';
+import { Pricing } from './pages/admin/Pricing';
+import { Session } from './pages/session/Session';
 
 const patientNav = [
   { to: '/patient', label: 'Overview' },
@@ -37,6 +39,7 @@ const providerNav = [
 const adminNav = [
   { to: '/admin', label: 'Overview' },
   { to: '/admin/applications', label: 'Applications' },
+  { to: '/admin/pricing', label: 'Pricing' },
 ];
 
 export default function App() {
@@ -58,6 +61,17 @@ export default function App() {
       </Route>
 
       <Route path="account" element={<AccountRedirect />} />
+
+      <Route
+        path="session/:appointmentId"
+        element={
+          <RequireAuth roles={['PATIENT', 'PSYCHIATRIST', 'ADMIN']}>
+            <AppLayout nav={[]} title="Session" />
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Session />} />
+      </Route>
 
       {/* Patient */}
       <Route
@@ -106,6 +120,7 @@ export default function App() {
       >
         <Route index element={<AdminDashboard />} />
         <Route path="applications" element={<Applications />} />
+        <Route path="pricing" element={<Pricing />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

@@ -4,19 +4,10 @@ import { getRepositories } from '../../repositories';
 import { Button } from '../../components/Button';
 import styles from '../Dashboard.module.css';
 import type { PsychiatristProfile, ProviderStatus } from '../../types';
+import { getPlatformPackage } from '../../services/pricing';
 
 /** Statuses that allow the applicant to edit and resubmit */
 const EDITABLE: ProviderStatus[] = ['DRAFT', 'MORE_INFORMATION_REQUIRED', 'ACTIVE', 'APPROVED'];
-/** Statuses locked from applicant edits */
-const LOCKED: ProviderStatus[] = [
-  'UNDER_REVIEW',
-  'SUBMITTED',
-  'APPROVED',
-  'ACTIVE',
-  'REJECTED',
-  'SUSPENDED',
-  'EXPIRED',
-];
 
 function isValidDriveUrl(url: string): boolean {
   try {
@@ -36,7 +27,6 @@ export function Application() {
   const [specialties, setSpecialties] = useState('');
   const [languages, setLanguages] = useState('English');
   const [jurisdictions, setJurisdictions] = useState('');
-  const [price, setPrice] = useState('80');
   const [status, setStatus] = useState<ProviderStatus>('DRAFT');
   const [notes, setNotes] = useState('');
   const [driveEvidenceUrl, setDriveEvidenceUrl] = useState('');
@@ -53,7 +43,6 @@ export function Application() {
       setSpecialties(p.specialties.join(', '));
       setLanguages(p.languages.join(', ') || 'English');
       setJurisdictions(p.jurisdictions.join(', '));
-      setPrice(String(p.price.amount || 80));
       setStatus(p.status);
       setNotes(p.applicationNotes || '');
       setDriveEvidenceUrl((p as { driveEvidenceUrl?: string }).driveEvidenceUrl || '');
@@ -104,7 +93,7 @@ export function Application() {
           .map((s) => s.trim().toUpperCase())
           .filter(Boolean),
         sessionDurationMin: existing?.sessionDurationMin || 50,
-        price: { amount: Number(price) || 0, currency: 'USD' },
+        price: (() => { const pkg = getPlatformPackage(); return { amount: pkg.amount, currency: pkg.currency }; })(),
         // Preserve existing verification — never self-verify
         trustPassport: existing?.trustPassport || {
           identity: { status: 'pending' },
@@ -256,16 +245,11 @@ export function Application() {
             disabled={!canEdit}
           />
         </label>
-        <label>
-          <span>Session fee (USD)</span>
-          <input
-            type="number"
-            min={0}
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            disabled={!canEdit}
-          />
-        </label>
+        <div className={styles.banner}>
+          <strong>Package pricing</strong> is set by Erkab (admin), not by individual
+          psychiatrists. Current package: {getPlatformPackage().label}. Your payout is the
+          package amount minus platform commission.
+        </div>
         <label>
           <span>Google Drive folder link (private — not shown publicly)</span>
           <input
