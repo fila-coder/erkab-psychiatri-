@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function uid() {
+      return request.auth.uid;
+    }
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(uid()))
+        && get(/databases/$(database)/documents/users/$(uid())).data.role == 'ADMIN';
+    }
+    function isActiveProvider() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/psychiatristPublic/$(uid()))
+        && get(/databases/$(database)/documents/psychiatristPublic/$(uid())).data.status == 'ACTIVE';
+    }
+
+    // Users: a signed-in user reads their own doc; an admin reads any.
+    // A user creates only their own doc, with role PATIENT or
+    // PSYCHIATRIST and status 'active'. Role/status can never be
+    // changed by the user themselves (admins set roles in the Console).
+    match /users/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create: if signedIn()
+        && uid() == userId
+        && request.resource.data.role in ['PATIENT', 'PSYCHIATRIST']
+        && request.resource.data.status == 'active';
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Intake: only the patient themself (admins may read for support).
+    match /patients/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create, update: if signedIn() && uid() == userId;
+      allow delete: if false;
+    }
+
+    // Therapist applications: the applicant writes their own; admins
+    // read and update all (approval). Never publicly readable.
+    match /psychiatristApplications/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create, update: if signedIn() && uid() == userId;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Public directory: readable by anyone, writable only by admin.
+    match /psychiatristPublic/{userId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Availability slots: anyone signed in may read open slots;
+    // only the owning provider (or admin) writes them.
+    match /availability/{slotId} {
+      allow read: if signedIn();
+      allow create, update, delete: if signedIn()
+        && (resource.data.providerId == uid() || isAdmin());
+    }
+
+    // Appointments: the patient, the provider, or an admin.
+    match /appointments/{id} {
+      allow read: if signedIn() && (
+        resource.data.patientId == uid()
+        || resource.data.providerId == uid()
+        || isAdmin()
+      );
+      allow create: if signedIn()
+        && request.resource.data.patientId == uid()
+        && request.resource.data.status == 'REQUESTED';
+      allow update: if signedIn() && (
+        (resource.data.patientId == uid()
+          && request.resource.data.status == 'CANCELLED')
+        || (resource.data.providerId == uid()
+          && request.resource.data.status in ['CONFIRMED', 'CANCELLED'])
+        || isAdmin()
+      );
+      allow delete: if false;
+    }
+
+    // Support tickets: the sender or an admin reads; anyone signed in
+    // may create one for themself (contact form uses the signed-in
+    // user's id, or 'anonymous' for signed-out visitors — the site
+    // sends the ticket with the visitor's own userId).
+    match /supportTickets/{id} {
+      allow read: if signedIn() && (resource.data.userId == uid() || isAdmin());
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Audit log: admins only.
+    match /auditLogs/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}
