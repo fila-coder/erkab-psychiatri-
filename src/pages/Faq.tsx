@@ -1,6 +1,6 @@
 export function FaqPage() {
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">FAQ</p>
       <h1>Frequently asked questions</h1>
 

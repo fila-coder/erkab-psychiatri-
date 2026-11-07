@@ -8,6 +8,13 @@ import {
 import type { AppUser, PsychiatristProfile } from '../lib/types';
 import { Button } from '../components/Button';
 
+function statusPill(status: string): string {
+  if (status === 'ACTIVE' || status === 'verified') return 'pill pill-green';
+  if (status === 'REJECTED') return 'pill pill-red';
+  if (status === 'PENDING') return 'pill pill-amber';
+  return 'pill pill-grey';
+}
+
 export function AdminPage() {
   const { user } = useAuth();
   const [apps, setApps] = useState<PsychiatristProfile[]>([]);
@@ -124,11 +131,29 @@ export function AdminPage() {
         <p>Loading…</p>
       ) : (
         <>
+          <div className="stat-grid">
+            <div className="stat">
+              <div className="stat-label">Applications</div>
+              <div className="stat-value">{apps.length}</div>
+            </div>
+            <div className="stat">
+              <div className="stat-label">Active therapists</div>
+              <div className="stat-value">
+                {apps.filter((a) => a.status === 'ACTIVE').length}
+              </div>
+            </div>
+            <div className="stat">
+              <div className="stat-label">Users</div>
+              <div className="stat-value">{users.length}</div>
+            </div>
+          </div>
+
           <div className="card">
             <h2>Therapist applications ({apps.length})</h2>
             {apps.length === 0 ? (
               <p>No applications yet.</p>
             ) : (
+              <div className="table-wrap">
               <table className="data">
                 <thead>
                   <tr>
@@ -150,8 +175,14 @@ export function AdminPage() {
                           {(a.specialties || []).join(', ')}
                         </span>
                       </td>
-                      <td>{a.status}</td>
-                      <td>{a.trustPassport?.overall || 'unverified'}</td>
+                      <td>
+                        <span className={statusPill(a.status)}>{a.status}</span>
+                      </td>
+                      <td>
+                        <span className={statusPill(a.trustPassport?.overall || 'unverified')}>
+                          {a.trustPassport?.overall || 'unverified'}
+                        </span>
+                      </td>
                       <td>
                         <div className="row">
                           <Button
@@ -175,6 +206,7 @@ export function AdminPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
             <p className="muted">
               Approval requires the Trust Passport overall to be
@@ -189,6 +221,7 @@ export function AdminPage() {
             {users.length === 0 ? (
               <p>No users yet.</p>
             ) : (
+              <div className="table-wrap">
               <table className="data">
                 <thead>
                   <tr>
@@ -204,11 +237,14 @@ export function AdminPage() {
                       <td>{u.displayName}</td>
                       <td>{u.email}</td>
                       <td>{u.role}</td>
-                      <td>{u.status}</td>
+                      <td>
+                        <span className={statusPill(u.status)}>{u.status}</span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </>

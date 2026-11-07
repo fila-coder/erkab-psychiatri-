@@ -1,6 +1,6 @@
 export function CancellationPage() {
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">Cancellation policy</p>
       <h1>Cancellation policy</h1>
       <p>

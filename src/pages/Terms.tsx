@@ -1,6 +1,6 @@
 export function TermsPage() {
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">Terms of service</p>
       <h1>Terms of service</h1>
       <p>

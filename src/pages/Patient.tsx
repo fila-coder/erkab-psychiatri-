@@ -17,6 +17,22 @@ import type {
 import { JURISDICTIONS, LANGUAGES, REASONS } from '../lib/types';
 import { Button } from '../components/Button';
 
+function initials(name: string): string {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
+function statusPill(status: string): string {
+  if (status === 'CONFIRMED') return 'pill pill-green';
+  if (status === 'CANCELLED') return 'pill pill-red';
+  return 'pill pill-amber';
+}
+
 export function PatientPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<PatientProfile | null>(null);
@@ -147,9 +163,16 @@ export function PatientPage() {
 
   return (
     <main className="page container">
-      <p className="eyebrow">Patient portal</p>
-      <h1>Welcome, {user.displayName}</h1>
-      <p className="muted">{user.email}</p>
+      <div className="portal-head">
+        <span className="avatar avatar-lg" aria-hidden="true">
+          {initials(user.displayName)}
+        </span>
+        <div>
+          <p className="eyebrow">Patient portal</p>
+          <h1>Welcome, {user.displayName}</h1>
+          <p className="muted">{user.email}</p>
+        </div>
+      </div>
 
       {error && (
         <p className="error" role="alert">
@@ -163,16 +186,31 @@ export function PatientPage() {
         <>
           <div className="card">
             <h2>Overview</h2>
-            <p>
-              Intake:{' '}
-              {profile?.intake
-                ? 'Complete — thank you.'
-                : 'Not complete yet. Please complete your confidential intake below.'}
-            </p>
-            <p>
-              Jurisdiction: {profile?.jurisdiction || 'Not set'}
-            </p>
-            <p>Upcoming appointments: {appointments.filter((a) => a.status !== 'CANCELLED').length}</p>
+            <div className="stat-grid">
+              <div className="stat">
+                <div className="stat-label">Intake</div>
+                <div className="stat-value">
+                  {profile?.intake ? 'Complete' : 'Not complete yet'}
+                </div>
+              </div>
+              <div className="stat">
+                <div className="stat-label">Jurisdiction</div>
+                <div className="stat-value">
+                  {profile?.jurisdiction || 'Not set'}
+                </div>
+              </div>
+              <div className="stat">
+                <div className="stat-label">Upcoming appointments</div>
+                <div className="stat-value">
+                  {appointments.filter((a) => a.status !== 'CANCELLED').length}
+                </div>
+              </div>
+            </div>
+            {!profile?.intake && (
+              <p className="muted">
+                Please complete your confidential intake below.
+              </p>
+            )}
             <Link to="/find" className="btn btn-primary">
               Find a therapist
             </Link>
@@ -194,7 +232,7 @@ export function PatientPage() {
                   ))}
                 </select>
               </label>
-              <fieldset>
+              <fieldset className="check-grid">
                 <legend>What would you like help with?</legend>
                 {REASONS.map((r) => (
                   <label key={r} className="check-row">
@@ -207,7 +245,7 @@ export function PatientPage() {
                   </label>
                 ))}
               </fieldset>
-              <fieldset>
+              <fieldset className="check-grid">
                 <legend>Preferred languages</legend>
                 {LANGUAGES.map((l) => (
                   <label key={l} className="check-row">
@@ -246,7 +284,7 @@ export function PatientPage() {
               <p>No open slots right now. Approved therapists publish their availability here.</p>
             ) : (
               slots.map((s) => (
-                <div key={s.id} className="row spread" style={{ marginBottom: 8 }}>
+                <div key={s.id} className="slot-row">
                   <span>
                     <strong>{providers[s.providerId]?.professionalName || 'Therapist'}</strong>{' '}
                     — {new Date(s.startAt).toLocaleString()} to{' '}
@@ -270,11 +308,12 @@ export function PatientPage() {
               <p>No appointments yet.</p>
             ) : (
               appointments.map((a) => (
-                <div key={a.id} className="card" style={{ marginBottom: 12 }}>
+                <div key={a.id} className="card appt-card">
                   <p>
                     <strong>{providers[a.providerId]?.professionalName || 'Therapist'}</strong>
                     <br />
-                    {new Date(a.startAt).toLocaleString()} — Status: {a.status}
+                    {new Date(a.startAt).toLocaleString()}{' '}
+                    <span className={statusPill(a.status)}>{a.status}</span>
                   </p>
                   {a.status === 'CONFIRMED' && (
                     <p>

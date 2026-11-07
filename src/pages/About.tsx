@@ -1,6 +1,6 @@
 export function AboutPage() {
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">About</p>
       <h1>About Erkab Therapy</h1>
       <p>

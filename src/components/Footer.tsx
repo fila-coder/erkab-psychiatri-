@@ -3,24 +3,21 @@ import { Link } from 'react-router-dom';
 export function Footer() {
   return (
     <footer className="site-footer">
-      <div className="container footer-inner">
-        <div>
-          <strong>Erkab Therapy</strong>
-          <p>
-            Book verified therapists for secure video consultations.
-            Erkab is not an emergency service.
-          </p>
-          <p>
-            Contact: filimongselassie@gmail.com · +251 936 573 692
-          </p>
+      <div className="tibeb-strip" aria-hidden="true" />
+      <div className="container container--wide footer-inner">
+        <div className="footer-brand">
+          <strong>
+            Erkab Therapy{' '}
+            <span className="footer-am" lang="am">
+              እርካብ ቴራፒ
+            </span>
+          </strong>
         </div>
-        <nav className="footer-nav">
+        <nav className="footer-nav" aria-label="Footer">
           <Link to="/about">About</Link>
           <Link to="/faq">FAQ</Link>
           <Link to="/terms">Terms</Link>
           <Link to="/privacy">Privacy</Link>
-          <Link to="/cancellation-policy">Cancellation policy</Link>
-          <Link to="/emergency">Emergency</Link>
           <Link to="/contact">Contact</Link>
         </nav>
       </div>

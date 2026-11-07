@@ -1,14 +1,14 @@
 export function EmergencyPage() {
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">Emergency</p>
       <h1>If this is an emergency</h1>
-      <p>
+      <div className="alert-card" role="alert">
         <strong>
           Erkab is not an emergency service. If you are in immediate
           danger, call your local emergency services first.
         </strong>
-      </p>
+      </div>
       <p>
         General emergency number: <strong>911</strong>. Use your local
         emergency number where it differs.

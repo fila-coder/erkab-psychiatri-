@@ -200,22 +200,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         } catch (err) {
           // A hanging/failed read must not silently sign the user in
-          // with a guessed role, and must not sign them out either:
-          // keep the failure visible by leaving loading off and user
-          // null; the sign-in page will show the stored error.
-          try {
-            localStorage.setItem(
-              'erkab-last-auth-error',
-              JSON.stringify({
-                step: 'onAuthStateChanged profile load',
-                code: (err as { code?: string }).code || '(no code)',
-                message: err instanceof Error ? err.message : String(err),
-                at: new Date().toISOString(),
-              })
-            );
-          } catch {
-            /* ignore */
-          }
+          // with a guessed role: leave the user unset and loading off.
+          // The sign-in page shows the error from the sign-in attempt.
+          void err;
           setUser(null);
           setLoading(false);
         }

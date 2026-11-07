@@ -67,31 +67,33 @@ export function SignUpPage() {
   }
 
   return (
-    <main className="page container">
-      <div className="card">
+    <main className="page container auth-page">
+      <div className="card auth-card">
         <p className="eyebrow">Create account</p>
         <h1>Join Erkab</h1>
         <p className="muted">
           Book verified therapists for secure video consultations.
         </p>
 
-        <div className="row" style={{ marginBottom: 16 }}>
-          <Button
+        <div className="role-grid">
+          <button
             type="button"
-            size="sm"
-            variant={role === 'PATIENT' ? 'primary' : 'soft'}
+            className={`role-card${role === 'PATIENT' ? ' selected' : ''}`}
+            aria-pressed={role === 'PATIENT'}
             onClick={() => setRole('PATIENT')}
           >
-            I am a patient
-          </Button>
-          <Button
+            <strong>I am a patient</strong>
+            <span>Book therapy sessions with a verified therapist</span>
+          </button>
+          <button
             type="button"
-            size="sm"
-            variant={role === 'PSYCHIATRIST' ? 'primary' : 'soft'}
+            className={`role-card${role === 'PSYCHIATRIST' ? ' selected' : ''}`}
+            aria-pressed={role === 'PSYCHIATRIST'}
             onClick={() => setRole('PSYCHIATRIST')}
           >
-            I am a therapist
-          </Button>
+            <strong>I am a therapist</strong>
+            <span>Apply to join Erkab and be listed for booking</span>
+          </button>
         </div>
 
         {role === 'PSYCHIATRIST' && (

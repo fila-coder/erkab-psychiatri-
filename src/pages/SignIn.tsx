@@ -12,22 +12,6 @@ export function SignInPage() {
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const [lastError, setLastError] = useState<{
-    step: string;
-    code: string;
-    message: string;
-    at: string;
-  } | null>(null);
-
-  // Show the last sign-up/sign-in error on screen, if one was saved.
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('erkab-last-auth-error');
-      if (raw) setLastError(JSON.parse(raw));
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -87,39 +71,13 @@ export function SignInPage() {
   }
 
   return (
-    <main className="page container">
-      <div className="card">
+    <main className="page container auth-page">
+      <div className="card auth-card">
         <p className="eyebrow">Sign in</p>
         <h1>Welcome back</h1>
         <p className="muted">
           Access your appointments, messages, and account settings.
         </p>
-
-        {lastError && (
-          <div className="error" role="alert">
-            <strong>Last sign-in error</strong>
-            <br />
-            Step: {lastError.step}
-            <br />
-            Code: {lastError.code}
-            <br />
-            Message: {lastError.message}
-            <br />
-            At: {lastError.at}
-            <br />
-            <button
-              type="button"
-              className="link-button"
-              style={{ color: 'inherit', textDecoration: 'underline' }}
-              onClick={() => {
-                localStorage.removeItem('erkab-last-auth-error');
-                setLastError(null);
-              }}
-            >
-              Clear
-            </button>
-          </div>
-        )}
 
         <form onSubmit={(e) => void onSubmit(e)} className="form">
           <label>

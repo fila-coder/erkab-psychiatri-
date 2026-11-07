@@ -3,6 +3,17 @@ import { Link } from 'react-router-dom';
 import { therapistsRepo } from '../repositories';
 import type { PsychiatristProfile } from '../lib/types';
 import { Button } from '../components/Button';
+import { ErkabSeal } from '../components/Seal';
+
+function initials(name: string): string {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
 
 export function FindPage() {
   const [list, setList] = useState<PsychiatristProfile[]>([]);
@@ -34,14 +45,16 @@ export function FindPage() {
 
   return (
     <main className="page container">
-      <p className="eyebrow">Find a therapist</p>
-      <h1>Approved therapists</h1>
-      <p>
-        Only therapists approved by an Erkab admin appear here. Each
-        one&apos;s identity, licence and qualifications have been checked.
-      </p>
+      <div className="page-head">
+        <p className="eyebrow">Find a therapist</p>
+        <h1>Approved therapists</h1>
+        <p className="lede">
+          Only therapists approved by an Erkab admin appear here. Each
+          one&apos;s identity, licence and qualifications have been checked.
+        </p>
+      </div>
 
-      <div className="card">
+      <div className="card filter-card">
         <div className="row">
           <label>
             Language
@@ -86,7 +99,7 @@ export function FindPage() {
       {loading ? (
         <p>Loading…</p>
       ) : list.length === 0 ? (
-        <div className="card">
+        <div className="card empty-state">
           <h2>No therapists are listed for public booking yet.</h2>
           <p>
             Therapists only appear here after admin approval (ACTIVE in
@@ -97,8 +110,19 @@ export function FindPage() {
       ) : (
         <div className="grid">
           {list.map((p) => (
-            <article key={p.uid} className="card">
-              <h2>{p.professionalName}</h2>
+            <article key={p.uid} className="card therapist-card">
+              <div className="therapist-head">
+                <span className="avatar" aria-hidden="true">
+                  {initials(p.professionalName)}
+                </span>
+                <div>
+                  <h2>{p.professionalName}</h2>
+                  <span className="verified-row">
+                    <span className="pill pill-green">Verified</span>
+                    <ErkabSeal size="sm" />
+                  </span>
+                </div>
+              </div>
               <p>{p.bio || 'Therapist at Erkab.'}</p>
               <p>
                 {p.specialties.map((s) => (
@@ -109,20 +133,21 @@ export function FindPage() {
               </p>
               <p className="muted">
                 {p.languages.join(', ') || 'Languages not listed'} ·{' '}
-                {p.sessionDurationMin} min ·{' '}
-                {p.price?.amount
-                  ? `${p.price.currency} ${p.price.amount}`
-                  : 'Price on booking'}
+                {p.sessionDurationMin} min
               </p>
-              <p>
-                <span className="tag">Verified</span>
-              </p>
-              <Link
-                to="/auth/sign-up"
-                className="btn btn-primary"
-              >
-                Book — sign up first
-              </Link>
+              <div className="therapist-foot">
+                <span className="therapist-price">
+                  {p.price?.amount
+                    ? `${p.price.currency} ${p.price.amount}`
+                    : 'Price on booking'}
+                </span>
+                <Link
+                  to="/auth/sign-up"
+                  className="btn btn-primary"
+                >
+                  Book — sign up first
+                </Link>
+              </div>
             </article>
           ))}
         </div>

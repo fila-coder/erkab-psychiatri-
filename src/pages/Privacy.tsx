@@ -1,6 +1,6 @@
 export function PrivacyPage() {
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">Privacy notice</p>
       <h1>Privacy notice</h1>
       <p>

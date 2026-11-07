@@ -39,7 +39,7 @@ export function ContactPage() {
   }
 
   return (
-    <main className="page container">
+    <main className="page container narrow prose-page">
       <p className="eyebrow">Contact</p>
       <h1>Contact us</h1>
       <p>
