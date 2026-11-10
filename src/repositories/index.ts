@@ -7,7 +7,7 @@
  * auditLogs. Listing uses the REST collection list and filters
  * client-side; collections in this app are small.
  */
-import { restGet, restSet, restAdd, restDelete, restList } from '../lib/firestoreRest';
+import { restGet, restSet, restAdd, restDelete, restList, restQuery } from '../lib/firestoreRest';
 import type {
   AppUser,
   Appointment,
@@ -175,16 +175,26 @@ export const availabilityRepo = {
 
 export const appointmentsRepo = {
   async listByPatient(patientId: string): Promise<Appointment[]> {
-    const docs = await restList<Appointment>('appointments');
+    // Filtered server-side: an unfiltered list of ALL appointments is
+    // denied by the owner-only read rule (403), even when empty.
+    // Asking only for this patient's appointments passes the rule.
+    const docs = await restQuery<Appointment>(
+      'appointments',
+      'patientId',
+      patientId
+    );
     return docs
-      .filter((d) => d.patientId === patientId)
       .map((d) => d as Appointment)
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
   },
   async listByProvider(providerId: string): Promise<Appointment[]> {
-    const docs = await restList<Appointment>('appointments');
+    // Filtered server-side — see listByPatient above.
+    const docs = await restQuery<Appointment>(
+      'appointments',
+      'providerId',
+      providerId
+    );
     return docs
-      .filter((d) => d.providerId === providerId)
       .map((d) => d as Appointment)
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
   },

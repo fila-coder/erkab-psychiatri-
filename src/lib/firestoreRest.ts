@@ -256,3 +256,72 @@ export async function restList<T>(
     return { ...(decodeFields(d.fields || {}) as unknown as T), id };
   });
 }
+
+/**
+ * Server-side filtered query (runQuery) — list only the documents
+ * where one field equals one value.
+ *
+ * Why this exists: an unfiltered list asks Firestore for EVERY
+ * document in the collection, so the security rules must allow the
+ * caller to read every one of them. For owner-scoped collections
+ * such as appointments (readable only by that appointment's patient,
+ * provider or an admin) an unfiltered list is therefore denied with
+ * 403 PERMISSION_DENIED even when the collection is empty — and the
+ * page that lists them never loads. A filtered query only ever
+ * returns documents the caller is allowed to read, so the same rules
+ * allow it. A single-field equality filter needs no composite index.
+ */
+export async function restQuery<T>(
+  collectionId: string,
+  fieldPath: string,
+  value: string
+): Promise<Array<T & { id: string }>> {
+  const token = await idToken();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}:runQuery`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      signal: controller.signal,
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath },
+              op: 'EQUAL',
+              value: { stringValue: value },
+            },
+          },
+        },
+      }),
+    });
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error(
+        `Firestore query timed out after ${REST_TIMEOUT_MS / 1000}s (${collectionId} where ${fieldPath} == ${value}). Check your connection and try again.`
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(
+      `Firestore query failed (HTTP ${res.status}) for ${collectionId} where ${fieldPath} == ${value}. ${text}`.trim()
+    );
+  }
+  const body = (await res.json()) as Array<{
+    document?: { fields?: RestFields; name?: string };
+  }>;
+  return (body || [])
+    .filter((entry) => entry.document)
+    .map((entry) => {
+      const d = entry.document!;
+      const id = (d.name || '').split('/').pop() || '';
+      return { ...(decodeFields(d.fields || {}) as unknown as T), id };
+    });
+}

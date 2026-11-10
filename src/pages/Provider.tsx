@@ -15,6 +15,23 @@ import type {
 import { JURISDICTIONS, LANGUAGES } from '../lib/types';
 import { Button } from '../components/Button';
 
+function initials(name: string): string {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
+function statusPill(status: string): string {
+  if (status === 'ACTIVE' || status === 'CONFIRMED') return 'pill pill-green';
+  if (status === 'REJECTED' || status === 'CANCELLED') return 'pill pill-red';
+  if (status === 'PENDING' || status === 'REQUESTED') return 'pill pill-amber';
+  return 'pill pill-grey';
+}
+
 const EMPTY_PASSPORT: TrustPassport = {
   identity: { status: 'pending' },
   licence: { status: 'pending' },
@@ -52,13 +69,28 @@ export function ProviderPage() {
     setLoading(true);
     setError('');
     try {
-      const [a, appts, s] = await Promise.all([
+      // Load each part separately: one failing list (e.g. appointments)
+      // must never hide the therapist's application again.
+      const [aResult, apptsResult, sResult] = await Promise.allSettled([
         therapistsRepo.getApplication(user.uid),
         appointmentsRepo.listByProvider(user.uid),
         availabilityRepo.listByProvider(user.uid),
       ]);
+      if (aResult.status === 'rejected') throw aResult.reason;
+      if (sResult.status === 'rejected') throw sResult.reason;
+      const a = aResult.value;
+      const s = sResult.value;
       setApp(a);
-      setAppointments(appts);
+      if (apptsResult.status === 'fulfilled') {
+        setAppointments(apptsResult.value);
+      } else {
+        setAppointments([]);
+        setError(
+          apptsResult.reason instanceof Error
+            ? apptsResult.reason.message
+            : 'Could not load your appointments.'
+        );
+      }
       setSlots(s);
       if (a) {
         setProfessionalName(a.professionalName || '');
@@ -174,11 +206,22 @@ export function ProviderPage() {
 
   return (
     <main className="page container">
-      <p className="eyebrow">Therapist portal</p>
-      <h1>Welcome, {user.displayName}</h1>
-      <p className="muted">{user.email}</p>
-      <p>
-        <strong>Profile status:</strong> {statusLabel}
+      <div className="portal-head">
+        <span className="avatar avatar-lg" aria-hidden="true">
+          {initials(user.displayName)}
+        </span>
+        <div>
+          <p className="eyebrow">Therapist portal</p>
+          <h1>Welcome, {user.displayName}</h1>
+          <p className="muted">{user.email}</p>
+        </div>
+      </div>
+      <p className="status-line">
+        <strong>Profile status:</strong>{' '}
+        <span className={statusPill(app?.status || 'DRAFT')}>
+          {app?.status || 'DRAFT'}
+        </span>{' '}
+        {statusLabel}
       </p>
 
       {error && (
@@ -214,7 +257,7 @@ export function ProviderPage() {
                   placeholder="Anxiety, Depression, Sleep problems"
                 />
               </label>
-              <fieldset>
+              <fieldset className="check-grid">
                 <legend>Languages</legend>
                 {LANGUAGES.map((l) => (
                   <label key={l} className="check-row">
@@ -227,7 +270,7 @@ export function ProviderPage() {
                   </label>
                 ))}
               </fieldset>
-              <fieldset>
+              <fieldset className="check-grid">
                 <legend>Jurisdictions you practise in</legend>
                 {JURISDICTIONS.map((j) => (
                   <label key={j} className="check-row">
@@ -324,9 +367,12 @@ export function ProviderPage() {
               <p>No slots published yet.</p>
             ) : (
               slots.map((s) => (
-                <p key={s.id}>
-                  {new Date(s.startAt).toLocaleString()} — {s.status}
-                </p>
+                <div key={s.id} className="slot-row">
+                  <span>
+                    {new Date(s.startAt).toLocaleString()}{' '}
+                    <span className={statusPill(s.status)}>{s.status}</span>
+                  </span>
+                </div>
               ))
             )}
           </div>
@@ -337,9 +383,10 @@ export function ProviderPage() {
               <p>No appointments yet.</p>
             ) : (
               appointments.map((a) => (
-                <div key={a.id} className="card" style={{ marginBottom: 12 }}>
+                <div key={a.id} className="card appt-card">
                   <p>
-                    {new Date(a.startAt).toLocaleString()} — Status: {a.status}
+                    {new Date(a.startAt).toLocaleString()}{' '}
+                    <span className={statusPill(a.status)}>{a.status}</span>
                   </p>
                   {a.status === 'CONFIRMED' && (
                     <p>

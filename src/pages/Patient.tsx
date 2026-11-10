@@ -55,13 +55,28 @@ export function PatientPage() {
     setLoading(true);
     setError('');
     try {
-      const [p, appts, active] = await Promise.all([
+      // Load each part separately: one failing list (e.g. appointments)
+      // must never hide the intake profile again.
+      const [pResult, apptsResult, activeResult] = await Promise.allSettled([
         patientsRepo.get(user.uid),
         appointmentsRepo.listByPatient(user.uid),
         therapistsRepo.listActive(),
       ]);
+      if (pResult.status === 'rejected') throw pResult.reason;
+      if (activeResult.status === 'rejected') throw activeResult.reason;
+      const p = pResult.value;
+      const active = activeResult.value;
       setProfile(p);
-      setAppointments(appts);
+      if (apptsResult.status === 'fulfilled') {
+        setAppointments(apptsResult.value);
+      } else {
+        setAppointments([]);
+        setError(
+          apptsResult.reason instanceof Error
+            ? apptsResult.reason.message
+            : 'Could not load your appointments.'
+        );
+      }
       const byId: Record<string, PsychiatristProfile> = {};
       for (const pr of active) byId[pr.uid] = pr;
       setProviders(byId);
