@@ -123,6 +123,12 @@ export function ProviderPage() {
 
   async function saveApplication() {
     if (!user) return;
+    if (!driveUrl.trim()) {
+      setError(
+        'Add the Drive link to your CV and documents — it is required before you can save your application.'
+      );
+      return;
+    }
     setSaving(true);
     setSaved(false);
     setError('');
@@ -321,9 +327,10 @@ export function ProviderPage() {
                 />
               </label>
               <label>
-                Drive evidence link (optional — may be left empty)
+                Drive link to your CV and documents (required)
                 <input
                   type="url"
+                  required
                   value={driveUrl}
                   onChange={(e) => setDriveUrl(e.target.value)}
                   placeholder="https://drive.google.com/…"

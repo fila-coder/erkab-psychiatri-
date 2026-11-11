@@ -160,6 +160,7 @@ export function AdminPage() {
                     <th>Name</th>
                     <th>Status</th>
                     <th>Trust Passport</th>
+                    <th>Documents</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -182,6 +183,15 @@ export function AdminPage() {
                         <span className={statusPill(a.trustPassport?.overall || 'unverified')}>
                           {a.trustPassport?.overall || 'unverified'}
                         </span>
+                      </td>
+                      <td>
+                        {a.driveEvidenceUrl ? (
+                          <a href={a.driveEvidenceUrl} target="_blank" rel="noreferrer">
+                            Open documents
+                          </a>
+                        ) : (
+                          <span className="muted">No link</span>
+                        )}
                       </td>
                       <td>
                         <div className="row">
