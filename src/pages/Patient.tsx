@@ -183,7 +183,7 @@ export function PatientPage() {
           {initials(user.displayName)}
         </span>
         <div>
-          <p className="eyebrow">Patient portal</p>
+          <p className="eyebrow">Client portal</p>
           <h1>Welcome, {user.displayName}</h1>
           <p className="muted">{user.email}</p>
         </div>

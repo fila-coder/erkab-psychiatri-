@@ -82,7 +82,7 @@ export function SignUpPage() {
             aria-pressed={role === 'PATIENT'}
             onClick={() => setRole('PATIENT')}
           >
-            <strong>I am a patient</strong>
+            <strong>I am a client</strong>
             <span>Book therapy sessions with a verified therapist</span>
           </button>
           <button

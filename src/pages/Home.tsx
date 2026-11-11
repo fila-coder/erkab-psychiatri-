@@ -41,7 +41,6 @@ export function HomePage() {
           </div>
         </div>
         <div className="tibeb-zigzag" aria-hidden="true" />
-        <p className="hero-credit">Image made for Erkab Therapy</p>
       </section>
 
       <section className="breath-band">
@@ -86,7 +85,7 @@ export function HomePage() {
               <p className="how-num">01</p>
               <h3>Create an account</h3>
               <p>
-                Create an account as a patient — or apply to join as a
+                Create an account as a client — or apply to join as a
                 therapist.
               </p>
             </div>

@@ -14,16 +14,16 @@ export function CancellationPage() {
         been reviewed by legal counsel. Until then, the points below
         describe how cancellations are intended to work.
       </p>
-      <h2>Patients</h2>
+      <h2>Clients</h2>
       <p>
-        A patient can cancel a requested appointment (one the
+        A client can cancel a requested appointment (one the
         therapist has not confirmed yet) from their portal at any
         time. The time slot becomes open again.
       </p>
       <h2>Therapists</h2>
       <p>
         A therapist can cancel an appointment from their portal. The
-        patient is expected to be told as soon as possible, and the time
+        client is expected to be told as soon as possible, and the time
         slot becomes open again.
       </p>
       <h2>Refunds</h2>

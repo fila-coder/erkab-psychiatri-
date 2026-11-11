@@ -236,7 +236,13 @@ export function AdminPage() {
                     <tr key={u.uid}>
                       <td>{u.displayName}</td>
                       <td>{u.email}</td>
-                      <td>{u.role}</td>
+                      <td>
+                        {u.role === 'PATIENT'
+                          ? 'Client'
+                          : u.role === 'PSYCHIATRIST'
+                            ? 'Therapist'
+                            : 'Admin'}
+                      </td>
                       <td>
                         <span className={statusPill(u.status)}>{u.status}</span>
                       </td>

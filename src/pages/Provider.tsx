@@ -339,7 +339,7 @@ export function ProviderPage() {
           <div className="card">
             <h2>Availability</h2>
             <p className="muted">
-              Publish open time slots. Patients can request them; you confirm
+              Publish open time slots. Clients can request them; you confirm
               each request below.
             </p>
             <div className="row">

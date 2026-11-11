@@ -29,7 +29,7 @@ export function TermsPage() {
       </p>
       <h2>Appointments</h2>
       <p>
-        Appointments are requested by patients and confirmed by
+        Appointments are requested by clients and confirmed by
         therapists. Either side may cancel as described in the
         cancellation policy.
       </p>

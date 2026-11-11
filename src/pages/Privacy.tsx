@@ -17,7 +17,7 @@ export function PrivacyPage() {
       </p>
       <h2>What we collect</h2>
       <p>
-        Your account details (name, email), your role (patient,
+        Your account details (name, email), your role (client,
         therapist or admin), your intake answers, your appointments
         and any message you send through the contact form.
       </p>

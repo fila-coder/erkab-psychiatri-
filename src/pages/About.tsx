@@ -4,7 +4,7 @@ export function AboutPage() {
       <p className="eyebrow">About</p>
       <h1>About Erkab Therapy</h1>
       <p>
-        Erkab Therapy connects patients with verified therapists for
+        Erkab Therapy connects clients with verified therapists for
         secure video consultations.
       </p>
       <h2>How verification works</h2>

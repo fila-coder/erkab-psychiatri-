@@ -6,7 +6,7 @@ export function FaqPage() {
 
       <h2>How do I book a therapist?</h2>
       <p>
-        Create a patient account, complete your confidential intake, find
+        Create a client account, complete your confidential intake, find
         an approved therapist on the Find page, and request one of
         their open time slots. The therapist confirms your request,
         and the appointment then shows a video-call link.
@@ -24,13 +24,13 @@ export function FaqPage() {
       <p>
         Confirmed appointments include a &quot;Join video call&quot;
         button that opens a Jitsi meeting in a new tab. No software to
-        install. Only the patient and the therapist of that
+        install. Only the client and the therapist of that
         appointment see the link.
       </p>
 
       <h2>Can I cancel an appointment?</h2>
       <p>
-        Yes. A patient can cancel a requested (not yet confirmed)
+        Yes. A client can cancel a requested (not yet confirmed)
         appointment from their portal, and a therapist can cancel an
         appointment from theirs. See the cancellation policy page for
         details.
