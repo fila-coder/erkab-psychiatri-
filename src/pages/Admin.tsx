@@ -49,7 +49,7 @@ export function AdminPage() {
     if (!user) return;
     if (app.trustPassport?.overall !== 'verified') {
       setError(
-        'Set the Trust Passport overall to verified before activating. This is an admin attestation done in the Firebase Console on the application document.'
+        'Verify the Trust Passport first — open their documents, review them, then click Verify.'
       );
       return;
     }
@@ -75,6 +75,42 @@ export function AdminPage() {
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not approve this application.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function verifyPassport(app: PsychiatristProfile) {
+    if (!user) return;
+    setBusy(app.uid);
+    setError('');
+    setInfo('');
+    try {
+      const verified = {
+        identity: { status: 'verified' },
+        licence: { status: 'verified' },
+        qualification: { status: 'verified' },
+        interview: { status: 'verified' },
+        overall: 'verified',
+        verificationDate: new Date().toISOString(),
+      };
+      const updated: PsychiatristProfile = {
+        ...app,
+        trustPassport: verified,
+        updatedAt: new Date().toISOString(),
+      };
+      await therapistsRepo.upsertApplication(updated);
+      await auditRepo.append({
+        actorId: user.uid,
+        action: 'provider.VERIFIED',
+        targetType: 'therapist',
+        targetId: app.uid,
+        reason: 'Trust Passport verified by admin after reviewing documents',
+      });
+      setInfo(`${app.professionalName} is now verified. You can approve them.`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not verify this Trust Passport.');
     } finally {
       setBusy(null);
     }
@@ -197,6 +233,18 @@ export function AdminPage() {
                         <div className="row">
                           <Button
                             size="sm"
+                            disabled={
+                              busy === a.uid ||
+                              a.trustPassport?.overall === 'verified' ||
+                              a.status === 'ACTIVE' ||
+                              a.status === 'REJECTED'
+                            }
+                            onClick={() => void verifyPassport(a)}
+                          >
+                            Verify
+                          </Button>
+                          <Button
+                            size="sm"
                             disabled={busy === a.uid || a.status === 'ACTIVE'}
                             onClick={() => void approve(a)}
                           >
@@ -219,10 +267,9 @@ export function AdminPage() {
               </div>
             )}
             <p className="muted">
-              Approval requires the Trust Passport overall to be
-              &apos;verified&apos; first. Set it on the application document
-              in the Firebase Console after checking identity, licence,
-              qualification and interview evidence.
+              To approve a therapist, first open their documents, review
+              them, then click Verify. Approval needs a verified Trust
+              Passport.
             </p>
           </div>
 
