@@ -150,10 +150,8 @@ export function AdminPage() {
       <p className="eyebrow">Admin portal</p>
       <h1>Administration</h1>
       <p className="muted">
-        Approve therapists before they appear for public booking. Admin
-        accounts are created directly in the Firebase Console (Auth +
-        users/{'{uid}'} with role ADMIN) — never by signing up through
-        the site.
+        Approve therapists before they appear for public booking. Only
+        approved therapists are listed on Find a therapist.
       </p>
 
       {error && (
